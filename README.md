@@ -1,4 +1,4 @@
-## COVID analyzer for Switzerland (Based on JHU and Gesundheitsdirektion ZH data)
+## COVID-19 analyzer (Based on JHU and Gesundheitsdirektion ZH data)
 
 Crawling and plotting data from
 https://github.com/CSSEGISandData/COVID-19
@@ -26,9 +26,9 @@ git pull
 cd ../
 ```
 
-####To run
+#### To run
 
-To run 
+The script takes two arguments:The first is `kanton` and it defines what is plotted using BAG data, the second is `country` and it defines which contry data is plotted using JHU data 
 ```console
 python3 analyze.py kanton country #kanton for BAG data, country for JHU data
 ```
