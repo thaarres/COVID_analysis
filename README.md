@@ -1,11 +1,23 @@
 **COVID analyzer for Switzerland (Based on JHU and Gesundheitsdirektion ZH data)**
 
+This code runs in Python 3.7, with the following dependencies:
+```console
+scipy==1.4.1
+numpy==1.18.0
+matplotlib==3.1.2
+pandas==1.1.3
+```
+
+ To install the pre-requisites, do
+```console
+pip3 install -r requirements.txt
+```
 
 The JHU data is a submodule of this repository, so before analyzing makes sure you fetch the latest data
-```python
-cd COVID-19
+```console
+cd COVID-19/
 git pull
-cd ..
+cd ../
 ```
 
 Crawling data from
@@ -14,7 +26,7 @@ and
 https://github.com/openZH/covid_19/
 
 To run 
-```python
+```console
 python3 analyze.py kanton country #kanton for BAG data, country for JHU data
 ```
 
