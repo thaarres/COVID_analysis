@@ -1,0 +1,1 @@
+Analyze COVID-19 data from the Swiss ministy of health and JHU.
