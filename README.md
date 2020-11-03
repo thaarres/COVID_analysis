@@ -1,5 +1,11 @@
-**COVID analyzer for Switzerland (Based on JHU and Gesundheitsdirektion ZH data)**
+## COVID analyzer for Switzerland (Based on JHU and Gesundheitsdirektion ZH data)
 
+Crawling and plotting data from
+https://github.com/CSSEGISandData/COVID-19
+and
+https://github.com/openZH/covid_19/
+
+#### Prerequisites
 This code runs in Python 3.7, with the following dependencies:
 ```console
 scipy==1.4.1
@@ -20,10 +26,7 @@ git pull
 cd ../
 ```
 
-Crawling data from
-https://github.com/CSSEGISandData/COVID-19
-and
-https://github.com/openZH/covid_19/
+####To run
 
 To run 
 ```console
