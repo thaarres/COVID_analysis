@@ -298,7 +298,10 @@ def getDailyCH(kanton='all'):
 
             
 if __name__ == '__main__':  
+  
   country = 'Switzerland'
+  kanton  = 'ZH'
+  
   if len(sys.argv)>1:
     kanton = sys.argv[1]
   if len(sys.argv)>2:
