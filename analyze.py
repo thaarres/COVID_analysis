@@ -171,12 +171,35 @@ def getDailyPerKanton(kanton):
   df  = df[df['abbreviation_canton_and_fl']==kanton]
   df = df.groupby('date', as_index=False).sum()
   
-  scale = [1.,1.,1.,10.]
-  l0,x0,p0 = plt.hist(x=df['date'], weights=scale[0]*df['ncumul_conf'].diff()    , bins=len(df['date'])+1, facecolor = colorwheel[0], edgecolor =  'black', label = 'Confirmed x{}, Kanton {}'       .format(scale[0],kanton), linestyle=linestyles[0], linewidth=0.15,alpha=0.8)
-  l1,x1,p1 = plt.hist(x=df['date'], weights=scale[1]*df['current_hosp']          , bins=len(df['date'])+1, facecolor = colorwheel[1], edgecolor =  'black', label = 'Hospitalisations x{}, Kanton {}'.format(scale[1],kanton), linestyle=linestyles[0], linewidth=0.15,alpha=0.8)
-  l2,x2,p2 = plt.hist(x=df['date'], weights=scale[2]*df['current_vent']          , bins=len(df['date'])+1, facecolor = colorwheel[2], edgecolor =  'black', label = 'On ventilator x{}, Kanton {}'   .format(scale[2],kanton), linestyle=linestyles[0], linewidth=0.15,alpha=0.8)
-  l3,x3,p3 = plt.hist(x=df['date'], weights=scale[3]*df['ncumul_deceased'].diff(), bins=len(df['date'])+1, facecolor = colorwheel[3], edgecolor =  'black', label = 'Deaths x{}, Kanton {}'          .format(scale[3],kanton), linestyle=linestyles[0], linewidth=0.15,alpha=0.8)
-  plt.legend( loc='upper left')
+  df['current_conf']   = df['ncumul_conf'].diff()
+  df['current_deaths'] = df['ncumul_deceased'].diff()
+  df['CMA_conf'] = df.current_conf.expanding().mean()
+  df['SMA_conf'] = df.current_conf.rolling(7, min_periods=1).mean()
+  df['EMA_conf'] = df.current_conf.ewm(alpha=0.1, adjust=False).mean()
+  df['CMA_deaths'] = df.current_deaths.expanding().mean()
+  df['SMA_deaths'] = df.current_deaths.rolling(7, min_periods=1).mean()
+  df['EMA_deaths'] = df.current_deaths.ewm(alpha=0.1, adjust=False).mean()
+  df['CMA_hosp'] = df.current_hosp.expanding().mean()
+  df['SMA_hosp'] = df.current_hosp.rolling(7, min_periods=1).mean()
+  df['EMA_hosp'] = df.current_hosp.ewm(alpha=0.1, adjust=False).mean()
+  
+  scale = [1.,1.,1.,20.]
+  l0,x0,p0 = plt.hist(x=df['date'], weights=scale[0]*df['current_conf']  , bins=len(df['date']), facecolor = colorwheel[0], edgecolor =  'black', label = 'Confirmed x{}, Kanton {}'       .format(scale[0],kanton), linestyle=linestyles[0], linewidth=0.15,alpha=0.8)
+  # CMA0, = plt.plot(df['date'], scale[0]*df['CMA_conf'], color = 'black', linestyle=linestyles[0], linewidth=1.0,alpha=0.99)
+  SMA0, = plt.plot(df['date'], scale[0]*df['SMA_conf'], color = 'black', linestyle=linestyles[1], linewidth=1.0,alpha=0.99)
+  EMA0, = plt.plot(df['date'], scale[0]*df['EMA_conf'], color = 'black', linestyle=linestyles[2], linewidth=1.0,alpha=0.99)
+  l1,x1,p1 = plt.hist(x=df['date'], weights=scale[1]*df['current_hosp']  , bins=len(df['date']), facecolor = colorwheel[1], edgecolor =  'black', label = 'Hospitalisations x{}, Kanton {}'.format(scale[1],kanton), linestyle=linestyles[0], linewidth=0.15,alpha=0.8)
+  SMA1,= plt.plot(df['date'], scale[1]*df['SMA_hosp'], color = 'black',  linestyle=linestyles[1], linewidth=1.0,alpha=0.99)
+  l2,x2,p2 = plt.hist(x=df['date'], weights=scale[2]*df['current_vent']  , bins=len(df['date']), facecolor = colorwheel[2], edgecolor =  'black', label = 'On ventilator x{}, Kanton {}'   .format(scale[2],kanton), linestyle=linestyles[0], linewidth=0.15,alpha=0.8)
+  l3,x3,p3 = plt.hist(x=df['date'], weights=scale[3]*df['current_deaths'], bins=len(df['date']), facecolor = colorwheel[3], edgecolor =  'black', label = 'Deaths x{}, Kanton {}'          .format(scale[3],kanton), linestyle=linestyles[0], linewidth=0.15,alpha=0.8)
+  # CMA3,= plt.plot(df['date'], scale[3]*df['CMA_deaths'], color = 'black',  linestyle=linestyles[0], linewidth=1.0,alpha=0.99)
+  SMA3,= plt.plot(df['date'], scale[3]*df['SMA_deaths'], color = 'black',  linestyle=linestyles[1], linewidth=1.0,alpha=0.99)
+  # EMA3,= plt.plot(df['date'], scale[3]*df['EMA_deaths'], color = 'black',  linestyle=linestyles[2], linewidth=1.0,alpha=0.99)
+  
+  
+  plt.gca().add_artist(plt.legend([SMA0,EMA0], [r'Simple M.A.',r'Exponential M.A.' ], loc='center left',frameon=False))
+  plt.legend( loc='upper left',frameon=False)
+  
   axes = plt.gca()
   # axes.set_ylim([0.0,0.5E4])
   axes.set_ylim(bottom=1)
@@ -187,7 +210,7 @@ def getDailyPerKanton(kanton):
   cfr = float(df["ncumul_deceased"].iloc[-1]/df["ncumul_conf"].iloc[-1])*100.
   if math.isnan(cfr):
     cfr = float(df["ncumul_deceased"].iloc[-2]/df["ncumul_conf"].iloc[-2])*100.
-  plt.figtext(0.150, 0.53,'Case fatality rate {} = {:.2f}%'.format(kanton,cfr), wrap=True, horizontalalignment='left',verticalalignment='bottom')
+  plt.figtext(0.150, 0.33,'Case fatality rate {} = {:.2f}%'.format(kanton,cfr), wrap=True, horizontalalignment='left',verticalalignment='bottom')
   plt.figtext(0.620, 0.83,'COVID-19 {}'.format(kanton), wrap=True, horizontalalignment='left',verticalalignment='bottom')
   plt.figtext(0.620, 0.78,r'Open Data Kt. ZH', wrap=True, horizontalalignment='left',verticalalignment='bottom')
   plt.gca().get_xaxis().set_major_locator(AutoDateLocator(minticks=5,maxticks=6))
@@ -268,7 +291,7 @@ def getDailyCH(kanton='all'):
   plt.figtext(0.130, 0.78,r'BAG', wrap=True, horizontalalignment='left',verticalalignment='bottom')
   plt.savefig('BAG_fit_deaths_per_ageclass.png')
   
-  scale = [1,100.,1.,100.]
+  scale = [1,20.,1.,20]
   plot_lines = []
   fig, ax = plt.subplots()
   # plt.grid(color='0.8', linestyle='dotted')
@@ -277,10 +300,21 @@ def getDailyCH(kanton='all'):
     df_kanton  = df[df['ktn']==kanton]
     l1, = plt.plot(df_kanton['fall_dt'], df_kanton['fallklasse_3']*scale[0], color = colorwheel[0], label = 'Confirmed x{} {}'.format(scale[0],kanton), linestyle=linestyles[0])
     l2, = plt.plot(df_kanton['fall_dt'], df_kanton['pttod_1']*scale[1]     , color = colorwheel[2], label = 'Deaths x{} {}'.format(scale[1],kanton), linestyle=linestyles[0])
+  
   df_complete = df.groupby('fall_dt', as_index=False).sum()  
+  df_complete['CMA_deaths'] = df.pttod_1.expanding().mean()
+  df_complete['SMA_deaths'] = df.pttod_1.rolling(7, min_periods=1).mean()
+  df_complete['EMA_deaths'] = df.pttod_1.ewm(alpha=0.1, adjust=False).mean()
+  df_complete['CMA_cases'] = df.fallklasse_3.expanding().mean()
+  df_complete['SMA_cases'] = df.fallklasse_3.rolling(7, min_periods=1).mean()
+  df_complete['EMA_cases'] = df.fallklasse_3.ewm(alpha=0.1, adjust=False).mean()
+  
   y1, x1, patches1 = plt.hist(x=df_complete['fall_dt'], weights=df_complete['fallklasse_3']*scale[2]  , bins=len(df_complete['fall_dt']), facecolor = colorwheel[0], edgecolor =  'black', label = 'Confirmed x{}'.format(scale[2]), linestyle=linestyles[0], linewidth=0.15)
   y2, x2, patches2 = plt.hist(x=df_complete['fall_dt'], weights=df_complete['pttod_1']     *scale[3]  , bins=len(df_complete['fall_dt']), facecolor = colorwheel[1], edgecolor =  'black', label = 'Deaths x{}'.format(scale[3])   , linestyle=linestyles[0], linewidth=0.15)
-
+  # CMA0, = plt.plot(df['date'], scale[0]*df['CMA_conf'], color = 'black', linestyle=linestyles[0], linewidth=1.0,alpha=0.99)
+  SMA0, = plt.plot(df_complete['fall_dt'], scale[2]*df_complete['SMA_cases'] , color = 'black', linestyle=linestyles[1], linewidth=1.0,alpha=0.99)
+  EMA0, = plt.plot(df_complete['fall_dt'], scale[3]*df_complete['EMA_deaths'], color = 'black', linestyle=linestyles[2], linewidth=1.0,alpha=0.99)
+  plt.gca().add_artist(plt.legend([SMA0,EMA0], [r'Simple M.A.',r'Exponential M.A.' ], loc='center left',frameon=False))
   plt.legend( loc='upper left')
   axes = plt.gca()
   # axes.set_ylim([0.0,0.5E4])
@@ -309,8 +343,8 @@ if __name__ == '__main__':
       
   getDailyPerKanton(kanton)
   getDailyCH('all')
-  getDailyJHU(country)
-  getCumulativeJHU(country)
+  # getDailyJHU(country)
+  # getCumulativeJHU(country)
 
 
 #Not yet used: # https://www.covid19.admin.ch/api/data/20201111-rrxnz6kp/downloads/sources-csv.zip
